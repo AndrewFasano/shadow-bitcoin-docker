@@ -79,8 +79,7 @@ RUN ldconfig
 RUN cd ~/shadow-plugin-bitcoin &&  mkdir run
 RUN cd ~/shadow-plugin-bitcoin/run &&  mkdir bcdnode1
 RUN cd ~/shadow-plugin-bitcoin/run &&  mkdir bcdnode2
-RUN cd ~/shadow-plugin-bitcoin/run &&  mkdir -p data/.bitcoin1 data/.bitcoin2
-RUN cd ~/shadow-plugin-bitcoin/run && ../src/bitcoind/shadow-bitcoind -y -i ../resource/shadow.config.xml -r -t | grep -e "received: getaddr" -e "received: verack"
+#RUN cd ~/shadow-plugin-bitcoin/run && ../src/bitcoind/shadow-bitcoind -y -i ../resource/shadow.config.xml -r -t | grep -e "received: getaddr" -e "received: verack"
 
 ## Set up dev environment
 #RUN dnf -y remove vim-minimal
