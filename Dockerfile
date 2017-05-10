@@ -4,7 +4,7 @@ FROM shadow-standalone
 # gunzip -c shadow-standalone.tar.gz | docker load
 # More instructions at https://github.com/shadow/shadow/wiki/1-Installation-and-Setup#pre-built-images
 
-#MAINTAINER Andrew Fasano version: 0.1
+MAINTAINER Andrew Fasano version: 0.1
 
 RUN dnf -y install libstdc++ libstdc++-devel clang clang-devel llvm llvm-devel glib2 glib2-devel git wget tar autoconf automake openssl which cmake
 
@@ -64,4 +64,21 @@ RUN ldconfig
 RUN cd ~/shadow-plugin-bitcoin &&  mkdir run
 RUN cd ~/shadow-plugin-bitcoin/run && ../src/bitcoind/shadow-bitcoind -y -i ../resource/shadow.config.xml -r -t | grep -e "received: getaddr" -e "received: verack"
 
-# TODO - fix system limits for shadow ?
+# Set up dev environment
+RUN dnf -y remove vim-minimal
+
+# We need to install sudo as root or it breaks
+USER root
+RUN dnf -y install vim sudo tmux
+
+USER shadow
+RUN mkdir ~/host
+Add . ~/host
+
+#RUN wget https://cs.umd.edu/%7Eamiller/dotbitcoin_backing_120k.tar.gz
+#mkdir initdata
+#cd initdata
+#mkdir pristine # will hold the single copy of the blockchain datasets
+#cp -R /storage/dotbitcoin_backing_120k pristine/.
+#mkdir dotbitcoin_template_120k
+#cd dotbitcoin_template_120k
