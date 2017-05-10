@@ -77,25 +77,24 @@ RUN ldconfig
 
 # RUN
 RUN cd ~/shadow-plugin-bitcoin &&  mkdir run
-RUN cd ~/shadow-plugin-bitcoin/run &&  mkdir bcdnode1
-RUN cd ~/shadow-plugin-bitcoin/run &&  mkdir bcdnode2
-#RUN cd ~/shadow-plugin-bitcoin/run && ../src/bitcoind/shadow-bitcoind -y -i ../resource/shadow.config.xml -r -t | grep -e "received: getaddr" -e "received: verack"
+RUN cd ~/shadow-plugin-bitcoin/run/data &&  mkdir bcdnode1 bcdnode2
+RUN cd ~/shadow-plugin-bitcoin/run && ../src/bitcoind/shadow-bitcoind -y -i ../resource/shadow.config.xml -r -t | grep -e "received: getaddr" -e "received: verack"
 
 ## Set up dev environment
-#RUN dnf -y remove vim-minimal
-#
-## We need to install sudo as root or it breaks
-#USER root
-#RUN dnf -y install vim sudo tmux
-#
-#USER shadow
-#RUN mkdir ~/host
-#
-## Extract backing data and create symlinks
-#RUN dnf -y install bc
-#RUN cd ~/shadow-plugin-bitcoin/run && mkdir -p initdata/pristine
-#
-#RUN cd ~ && tar xf ~/dotbitcoin_backing_120k.tar.gz
-#RUN cp -R ~/dotbitcoin_backing_120k ~/shadow-plugin-bitcoin/run/initdata/pristine/.
-#RUN mkdir ~/shadow-plugin-bitcoin/run/initdata/dotbitcoin_template_120k
-#RUN cd ~/shadow-plugin-bitcoin/run/initdata/dotbitcoin_template_120k && ../../../tools/make_symlinks.sh ../pristine/dotbitcoin_backing_120k
+RUN dnf -y remove vim-minimal
+
+# We need to install sudo as root or it breaks
+USER root
+RUN dnf -y install vim sudo tmux
+
+USER shadow
+RUN mkdir ~/host
+
+# Extract backing data and create symlinks
+RUN dnf -y install bc
+RUN cd ~/shadow-plugin-bitcoin/run && mkdir -p initdata/pristine
+
+RUN cd ~ && tar xf ~/dotbitcoin_backing_120k.tar.gz
+RUN cp -R ~/dotbitcoin_backing_120k ~/shadow-plugin-bitcoin/run/initdata/pristine/.
+RUN mkdir ~/shadow-plugin-bitcoin/run/initdata/dotbitcoin_template_120k
+RUN cd ~/shadow-plugin-bitcoin/run/initdata/dotbitcoin_template_120k && ../../../tools/make_symlinks.sh ../pristine/dotbitcoin_backing_120k

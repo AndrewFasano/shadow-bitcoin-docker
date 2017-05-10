@@ -37,20 +37,38 @@
     <!--<plugin id="bitcoincli" path="libshadow-plugin-bitcoincli.so" />-->
 
     <!-- the length of our experiment in seconds  1404101800-->
-    <kill time="1200" />
+    <kill time="2400" />
 
     <!-- our nodes -->
 
     <node id="bcdnode1">
-        <application plugin="bitcoind" time="13" arguments="-datadir=data/bcdnode1 -dbcache=4 -debug -printtoconsole -connect=bcdnode2 -listen -par=2 -server=0 -rpcpassword=4J7YUKgRHd8hUWp14e233pwmkPtbnQ2cUS4PMxiy1J6z -checkblocks=1 -disablewallet=1"/>
+        <application plugin="bitcoind" time="13" arguments="-bind=11.0.0.5:8333 -datadir=data/bcdnode1 -dbcache=4 -debug -printtoconsole -connect=bcdnode2 -connect=bcdnode3 -connect=bcdnode4 -listen -par=2 -server=0 -rpcpassword=4J7YUKgRHd8hUWp14e233pwmkPtbnQ2cUS4PMxiy1J6z -checkblocks=1 -disablewallet=0"/>
     </node>
     <node id="bcdnode2">
-        <application plugin="bitcoind" time="13" arguments="-datadir=data/bcdnode2 -dbcache=4 -debug -printtoconsole -connect=bcdnode2 -listen -par=2 -server=0 -rpcpassword=4J7YUKgRHd8hUWp14e233pwmkPtbnQ2cUS4PMxiy1J6z -checkblocks=1 -disablewallet=1"/>
+        <application plugin="bitcoind" time="13" arguments="-bind=11.0.0.4:8333 -datadir=data/bcdnode2 -dbcache=4 -debug -printtoconsole -connect=bcdnode1 -connect=bcdnode3 -connect=bcdnode4 -listen -par=2 -server=0 -rpcpassword=4J7YUKgRHd8hUWp14e233pwmkPtbnQ2cUS4PMxiy1J6z -checkblocks=1 -disablewallet=0"/>
+    </node>
+    <node id="bcdnode3">
+        <application plugin="bitcoind" time="13" arguments="-bind=11.0.0.3:8333 -datadir=data/bcdnode2 -dbcache=4 -debug -printtoconsole -connect=bcdnode1 -connect=bcdnode2 -connect=bcdnode4 -listen -par=2 -server=0 -rpcpassword=4J7YUKgRHd8hUWp14e233pwmkPtbnQ2cUS4PMxiy1J6z -checkblocks=1 -disablewallet=0"/>
+    </node>
+    <node id="bcdnode4">
+        <application plugin="bitcoind" time="13" arguments="-bind=11.0.0.2:8333 -datadir=data/bcdnode2 -dbcache=4 -debug -printtoconsole -connect=bcdnode1 -connect=bcdnode2 -connect=bcdnode3 -listen -par=2 -server=0 -rpcpassword=4J7YUKgRHd8hUWp14e233pwmkPtbnQ2cUS4PMxiy1J6z -checkblocks=1 -disablewallet=0"/>
     </node>
 
-    <node id="injector2">
+ <!-- Get info
+    <node id="injector1">
       <application plugin="injector" time="20" arguments="bcdnode1 ../run/data/payload1.dat" />
     </node>
+-->
+ <!-- Get difficulty
+    <node id="injector2">
+      <application plugin="injector" time="40" arguments="bcdnode1 ../run/data/payload2.dat" />
+    </node>
+-->
+ <!-- Get bestblockhash -->
+    <node id="injector1">
+      <application plugin="injector" time="20" arguments="bcdnode1 ../run/data/getblocks.dat" />
+    </node>
+
     <!--
     <node id="bcdnode2">
         <application plugin="bitcoind" time="13" arguments="-datadir=data/.bitcoin2 -debug -printtoconsole -listen -connect=bcdnode1 -par=1 -server=0 -rpcpassword=4J7YUKgRHd8hUWp14e233pwmkPtbnQ2cUS4PMxiy1J6z -checkblocks=1 -disablewallet=1 -umd_loadindexsnapshot=/home/amiller/projects/shadow-plugin-bitcoin/build/snapshot1.dat" />
