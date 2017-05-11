@@ -102,5 +102,10 @@ RUN dnf -y install vim sudo tmux python-pip
 USER shadow
 
 RUN mkdir ~/host
+ENV TERM "xterm-color"
 
-RUN echo -e "\n\n================================================================================\nStart experiment with:\ncd ~/shadow-plugin-bitcoin/run; ../src/bitcoind/shadow-bitcoind -y -i ../resource/shadow.config-orphandos.mine.xml\n================================================================================\n\n"
+RUN echo "alias 'run'='cd ~/shadow-plugin-bitcoin/run; ../src/bitcoind/shadow-bitcoind -y -i ../resource/shadow.config-orphandos.mine.xml -T initdata/dotbitcoin_template_120k'" >> ~/.bash_aliases
+
+RUN chmod +x ~/.bash_aliases
+
+RUN echo -e "\n\n================================================================================\nStart experiment with:\ncd ~/shadow-plugin-bitcoin/run; ../src/bitcoind/shadow-bitcoind -y -i ../resource/shadow.config-orphandos.mine.xml -T initdata/dotbitcoin_template_120k\nor just type \`run\`\n================================================================================\n\n"
