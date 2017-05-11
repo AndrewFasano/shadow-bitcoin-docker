@@ -77,6 +77,11 @@ RUN pip install logger
 RUN sed -i ~/src/python-bitcoinlib/bitcoin/core/__init__.py -re '233d'
 RUN sed -i ~/src/python-bitcoinlib/bitcoin/core/__init__.py -re '231d'
 
+# Add additional dependencies for create_txprobe.py
+RUN cd ~ && git clone https://github.com/jameslitton/coinscope.git
+RUN cd ~/shadow-plugin-bitcoin/tools/ && rm common.py conclient.py connector.py logger.py logreader.py
+RUN cd ~/shadow-plugin-bitcoin/tools/ && mv ~/coinscope/libraries/python/*.py . && mv ~/coinscope/libraries/python/lib/*.py .
+
 # Extract backing data and create symlinks
 RUN cd ~/shadow-plugin-bitcoin/run && mkdir -p initdata/pristine
 
