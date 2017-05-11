@@ -55,7 +55,7 @@
     </node>
 
     <node id="injector1">
-      <application plugin="injector" time="20" arguments="bcdnode1 ../run/data/experiment1_payload.dat" />
+      <application plugin="injector" time="20" arguments="bcdnode1 ../resource/experiment1_payload.dat" />
     </node>
 
     <!--

@@ -60,12 +60,7 @@ RUN cd ~/shadow-plugin-bitcoin/build/shadow-plugin-bitcoin && mkdir shadow-plugi
 RUN cd ~/shadow-plugin-bitcoin/build/shadow-plugin-bitcoin && CC=`which clang` CXX=`which clang++` LD_LIBRARY_PATH=`pwd`/../boost_1_50_0/stage/lib PKG_CONFIG_PATH=/home/${USER}/.shadow/lib/pkgconfig LDFLAGS=-L/home/${USER}/.shadow/lib CFLAGS=-I/home/${USER}/.shadow/include CXXFLAGS=-I`pwd`/../boost_1_50_0 cmake ../..
 RUN cd ~/shadow-plugin-bitcoin/build/shadow-plugin-bitcoin && make && make install
 
-# Update LD_LIBRARY_PATH - This doesn't work
-#ENV LD_LIBRARY_PATH /usr/local/lib:/usr/lib:/lib:/home/shadow/.shadow/lib
-#RUN ldconfig
-#RUN ldd /home/shadow/.shadow/lib/libshadow-preload-bitcoind.so - Should have no errors
-
-# Alternate fix for LD_LIBRARY_PATH
+# Add our libraries to the existing LD_LIBRARY_PATH
 RUN ln -s /home/shadow/.shadow/lib/*.so /lib/
 RUN ldconfig
 
@@ -90,22 +85,27 @@ RUN cp -R ~/dotbitcoin_backing_120k ~/shadow-plugin-bitcoin/run/initdata/pristin
 RUN mkdir ~/shadow-plugin-bitcoin/run/initdata/dotbitcoin_template_120k
 RUN cd ~/shadow-plugin-bitcoin/run/initdata/dotbitcoin_template_120k && ../../../tools/make_symlinks.sh ../pristine/dotbitcoin_backing_120k
 
-ADD experiment1_payload.dat /home/${USER}/shadow-plugin-bitcoin/run/data
-ADD shadow.config-orphandos.mine.xml /home/${USER}/shadow-plugin-bitcoin/resource
-
 ## Set up dev environment
 RUN dnf -y remove vim-minimal
 
 # We need to install sudo as root or it breaks
 USER root
-RUN dnf -y install vim sudo tmux python-pip
+RUN dnf -y install vim sudo tmux
 USER shadow
 
 RUN mkdir ~/host
 ENV TERM "xterm-color"
 
-RUN echo "alias 'run'='cd ~/shadow-plugin-bitcoin/run; ../src/bitcoind/shadow-bitcoind -y -i ../resource/shadow.config-orphandos.mine.xml -T initdata/dotbitcoin_template_120k'" >> ~/.bash_aliases
+RUN echo "alias 'run'='cd ~/shadow-plugin-bitcoin/run; ../src/bitcoind/shadow-bitcoind -y -i ../resource/mine.xml -r -T initdata/dotbitcoin_template_120k'" >> ~/.bash_aliases
+RUN echo "alias 'log'='grep -v \"heartbeat\" ~/shadow-plugin-bitcoin/run/data/shadow.log | less'" >> ~/.bash_aliases
+RUN echo 'alias "chains"="ls ~/shadow-plugin-bitcoin/run/data/bcdnode{1,2,3,4}/chainstate"' >> ~/.bash_aliases
 
 RUN chmod +x ~/.bash_aliases
 
-RUN echo -e "\n\n================================================================================\nStart experiment with:\ncd ~/shadow-plugin-bitcoin/run; ../src/bitcoind/shadow-bitcoind -y -i ../resource/shadow.config-orphandos.mine.xml -T initdata/dotbitcoin_template_120k\nor just type \`run\`\n================================================================================\n\n"
+# Add pre-generated .dat files from tools
+ADD experiment_t120_tx.dat /home/${USER}/shadow-plugin-bitcoin/resource/
+ADD experiment_t120_block.dat /home/${USER}/shadow-plugin-bitcoin/resource/
+ADD experiment1_payload.dat /home/${USER}/shadow-plugin-bitcoin/resource/
+ADD mine.xml /home/${USER}/shadow-plugin-bitcoin/resource/
+
+RUN echo -e "\n\n================================================================================\nStart experiment with:\ncd ~/shadow-plugin-bitcoin/run; ../src/bitcoind/shadow-bitcoind -y -i ../resource/mine.xml -r -T initdata/dotbitcoin_template_120k\nor just type \`run\`\n================================================================================\n\n"
