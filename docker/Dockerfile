@@ -41,8 +41,7 @@ RUN mv ~/boost_1_50_0 ~/shadow-plugin-bitcoin/build
 RUN cd ~/shadow-plugin-bitcoin/build/openssl-1.0.1h && ./config --prefix=/home/${USER}/.shadow shared threads enable-ec_nistp_64_gcc_128 -fPIC
 RUN cd ~/shadow-plugin-bitcoin/build/openssl-1.0.1h && make depend && make && make install_sw
 
-# BITCOIN - enable or diable wallet? Instructions say disable
-#RUN cd ~/shadow-plugin-bitcoin/build/bitcoin && ./autogen.sh && LD_LIBRARY_PATH=`pwd`/../boost_1_50_0/stage/lib PKG_CONFIG_PATH=/home/${USER}/.shadow/lib/pkgconfig LDFLAGS=-L/home/${USER}/.shadow/lib CFLAGS=-I/home/${USER}/.shadow/include CXXFLAGS=-I`pwd`/../boost_1_50_0 ./configure --prefix=/home/${USER}/.shadow --without-miniupnpc --without-gui --disable-tests --with-boost-libdir=`pwd`/../boost_1_50_0/stage/lib
+# BITCOIN - should wallet be disabled?
 RUN cd ~/shadow-plugin-bitcoin/build/bitcoin && ./autogen.sh && LD_LIBRARY_PATH=`pwd`/../boost_1_50_0/stage/lib PKG_CONFIG_PATH=/home/${USER}/.shadow/lib/pkgconfig LDFLAGS=-L/home/${USER}/.shadow/lib CFLAGS=-I/home/${USER}/.shadow/include CXXFLAGS=-I`pwd`/../boost_1_50_0 ./configure --prefix=/home/${USER}/.shadow --without-miniupnpc --without-gui --disable-wallet --disable-tests --with-boost-libdir=`pwd`/../boost_1_50_0/stage/lib
 
 # GNU PTH
@@ -58,43 +57,32 @@ RUN cd ~/shadow-plugin-bitcoin/build/libev-4.15 && ./configure
 # build shadow plugin
 RUN cd ~/shadow-plugin-bitcoin/build && mkdir shadow-plugin-bitcoin
 RUN cd ~/shadow-plugin-bitcoin/build/shadow-plugin-bitcoin && mkdir shadow-plugin-bitcoin
-#RUN cd ~/shadow-plugin-bitcoin/build/shadow-plugin-bitcoin && git checkout attacks-features
-#RUN cd ~/shadow-plugin-bitcoin/ && git checkout origin/master src/CMakeLists.txt
-#RUN head ~/shadow-plugin-bitcoin/src/CMakeLists.txt -n 312 | tail -n100 && exit 1
-#RUN sed -i ~/shadow-plugin-bitcoin/src/CMakeLists.txt -re '211,312d'
-#RUN sed -i ~/shadow-plugin-bitcoin/src/CMakeLists.txt -re '350d'
-#RUN sed -i '350s/#//' ~/shadow-plugin-bitcoin/src/CMakeLists.txt
 RUN cd ~/shadow-plugin-bitcoin/build/shadow-plugin-bitcoin && CC=`which clang` CXX=`which clang++` LD_LIBRARY_PATH=`pwd`/../boost_1_50_0/stage/lib PKG_CONFIG_PATH=/home/${USER}/.shadow/lib/pkgconfig LDFLAGS=-L/home/${USER}/.shadow/lib CFLAGS=-I/home/${USER}/.shadow/include CXXFLAGS=-I`pwd`/../boost_1_50_0 cmake ../..
 RUN cd ~/shadow-plugin-bitcoin/build/shadow-plugin-bitcoin && make && make install
 
-# Update LD_LIBRARY_PATH - TODO - why doesn't this work
+# Update LD_LIBRARY_PATH - This doesn't work
 #ENV LD_LIBRARY_PATH /usr/local/lib:/usr/lib:/lib:/home/shadow/.shadow/lib
 #RUN ldconfig
 #RUN ldd /home/shadow/.shadow/lib/libshadow-preload-bitcoind.so - Should have no errors
 
-# Tempory fix for LD_LIBRARY_PATH
-RUN cp /home/shadow/.shadow/lib/*.so /lib/
+# Alternate fix for LD_LIBRARY_PATH
+RUN ln -s /home/shadow/.shadow/lib/*.so /lib/
 RUN ldconfig
 
-# RUN
+# Run basic test case
 RUN cd ~/shadow-plugin-bitcoin &&  mkdir run
 RUN cd ~/shadow-plugin-bitcoin/run && ../src/bitcoind/shadow-bitcoind -y -i ../resource/shadow.config.xml -r -t | grep -e "received: getaddr" -e "received: verack"
 
-## Set up dev environment
-RUN dnf -y remove vim-minimal
-
-# We need to install sudo as root or it breaks
-USER root
-RUN dnf -y install vim sudo tmux python-pip
-USER shadow
-
-# Source needs to be patched to removed assertations to generate experiment1_payload.dat
+# Get dependencies for tools/test_createtx.py
+RUN dnf -y install bc python-pip
 RUN cd ~ && pip install -e git://github.com/petertodd/python-bitcoinlib.git@python-bitcoinlib-v0.1.1#egg=python-bitcoinlib
-
 RUN pip install logger
 
+# Remove assertions from bitcoinlib so test_createtx.py works
+RUN sed -i ~/src/python-bitcoinlib/bitcoin/core/__init__.py -re '233d'
+RUN sed -i ~/src/python-bitcoinlib/bitcoin/core/__init__.py -re '231d'
+
 # Extract backing data and create symlinks
-RUN dnf -y install bc
 RUN cd ~/shadow-plugin-bitcoin/run && mkdir -p initdata/pristine
 
 RUN cd ~ && tar xf ~/dotbitcoin_backing_120k.tar.gz
@@ -104,6 +92,14 @@ RUN cd ~/shadow-plugin-bitcoin/run/initdata/dotbitcoin_template_120k && ../../..
 
 ADD experiment1_payload.dat /home/${USER}/shadow-plugin-bitcoin/run/data
 ADD shadow.config-orphandos.mine.xml /home/${USER}/shadow-plugin-bitcoin/resource
+
+## Set up dev environment
+RUN dnf -y remove vim-minimal
+
+# We need to install sudo as root or it breaks
+USER root
+RUN dnf -y install vim sudo tmux python-pip
+USER shadow
 
 RUN mkdir ~/host
 
